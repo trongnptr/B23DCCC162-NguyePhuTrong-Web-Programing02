@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Sinh Viên</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            font-size: 1.5em;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, select, button {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Quản Lý Sinh Viên</h1>
+        <form id="studentForm">
+            <input type="hidden" id="studentIndex" value="">
+            <label for="studentId">Mã Sinh Viên:</label>
+            <input type="text" id="studentId" required>
+            <label for="fullName">Họ Tên:</label>
+            <input type="text" id="fullName" required>
+            <label for="gender">Giới Tính:</label>
+            <select id="gender" required>
+                <option value="Nam">Nam</option>
+                <option value="Nữ">Nữ</option>
+            </select>
+            <label for="dob">Ngày Sinh:</label>
+            <input type="date" id="dob" required>
+            <label for="hometown">Quê Quán:</label>
+            <input type="text" id="hometown" required>
+            <button type="submit">Lưu Sinh Viên</button>
+        </form>
+        <table>
+            <thead>
+                <tr>
+                    <th>Mã Sinh Viên</th>
+                    <th>Họ Tên</th>
+                    <th>Giới Tính</th>
+                    <th>Ngày Sinh</th>
+                    <th>Quê Quán</th>
+                    <th>Hành Động</th>
+                </tr>
+            </thead>
+            <tbody id="studentTableBody">
+            </tbody>
+        </table>
+    </div>
+    <script>
+        class Student {
+            constructor(studentId, fullName, gender, dob, hometown) {
+                this.studentId = studentId;
+                this.fullName = fullName;
+                this.gender = gender;
+                this.dob = dob;
+                this.hometown = hometown;
+            }
+        }
+
+        class StudentManager {
+            constructor() {
+                this.students = JSON.parse(localStorage.getItem('students')) || [];
+                this.renderTable();
+            }
+
+            saveToStorage() {
+                localStorage.setItem('students', JSON.stringify(this.students));
+            }
+
+            addStudent(student) {
+                this.students.push(student);
+                this.saveToStorage();
+                this.renderTable();
+            }
+
+            updateStudent(index, updatedStudent) {
+                this.students[index] = updatedStudent;
+                this.saveToStorage();
+                this.renderTable();
+            }
+
+            deleteStudent(index) {
+                this.students.splice(index, 1);
+                this.saveToStorage();
+                this.renderTable();
+            }
+
+            renderTable() {
+                const tableBody = document.getElementById('studentTableBody');
+                tableBody.innerHTML = '';
+                this.students.forEach((student, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${student.studentId}</td>
+                        <td>${student.fullName}</td>
+                        <td>${student.gender}</td>
+                        <td>${student.dob}</td>
+                        <td>${student.hometown}</td>
+                        <td>
+                            <button onclick="editStudent(${index})">Sửa</button>
+                            <button onclick="deleteStudent(${index})">Xóa</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+        }
+
+        const studentManager = new StudentManager();
+
+        document.getElementById('studentForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const studentId = document.getElementById('studentId').value;
+            const fullName = document.getElementById('fullName').value;
+            const gender = document.getElementById('gender').value;
+            const dob = document.getElementById('dob').value;
+            const hometown = document.getElementById('hometown').value;
+
+            const studentIndex = document.getElementById('studentIndex').value;
+            
+            if (studentIndex) {
+                studentManager.updateStudent(studentIndex, new Student(studentId, fullName, gender, dob, hometown));
+                document.getElementById('studentIndex').value = '';
+            } else {
+                studentManager.addStudent(new Student(studentId, fullName, gender, dob, hometown));
+            }
+
+            document.getElementById('studentForm').reset();
+        });
+
+        function editStudent(index) {
+            const student = studentManager.students[index];
+            document.getElementById('studentId').value = student.studentId;
+            document.getElementById('fullName').value = student.fullName;
+            document.getElementById('gender').value = student.gender;
+            document.getElementById('dob').value = student.dob;
+            document.getElementById('hometown').value = student.hometown;
+            document.getElementById('studentIndex').value = index;
+        }
+
+        function deleteStudent(index) {
+            studentManager.deleteStudent(index);
+        }
+    </script>
+</body>
+</html>
